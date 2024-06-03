@@ -1,125 +1,100 @@
 \documentclass{article}
 
-
-\usepackage{authblk}
-\usepackage{listings, chngcntr}
-\usepackage{textcomp}
-\usepackage{float}
-\usepackage[T1]{fontenc}
-\usepackage{indentfirst}
-\usepackage{graphicx}
-\usepackage{array}
-\usepackage{caption} 
-\usepackage{hyperref}
-\usepackage{verbatim}
-\usepackage{float}
-\usepackage{subcaption}
-\usepackage{gensymb}
 \usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{geometry}
-\usepackage{multirow}
-\usepackage{listings}
-
-\DeclareMathOperator{\argmin}{\mathrm{arg \,min}}
-\DeclareMathOperator{\softmax}{\mathrm{soft \,max}}
-
-\geometry{
-    a4paper,
-    left=30mm,
-    right=30mm,
-    top=30mm,
-    bottom=40mm
-}
+\usepackage{authblk}
 
 \begin{document}
-\title{Summary of: Learning representations by back-propagating errors }
+
+\title{Summary of: Learning Representations by Back-Propagating Errors}
 \author[1]{Sungji Wang}
 \affil[1]{Seoul National University, Seoul 151-747, Korea}
 \maketitle
+
 \begin{abstract}
-    In this document, I will provide the summary of 1986 Nature paper "Learning representations by back-propagating errors".
-    Unofficial source code fetched online can be found at the repository
+    In this document, I will provide a summary of the 1986 Nature paper ``Learning Representations by Back-Propagating Errors".
+    Unofficial source code fetched online can be found at the repository.
 \end{abstract}
 
 \section{Mathematical Preliminary}
-Eqautions used in the paper should be easy to follow. Just note that {\partial} indicates partial derivative, and chain rule holds for partial derivatives as well.
+Equations used in the paper should be easy to follow. Just note that ${\partial}$ indicates partial derivative, and the chain rule holds for partial derivatives as well.
 
-Concepts of gradient descent is dealt importantly in the paper.
+The concept of gradient descent is dealt with importantly in the paper.
 The idea of gradient descent is to take repeated steps in the opposite direction of the gradient, which is the steepest direction of change in a multivariate function.
 
 \section{Summary}
 The paper provides a detailed description of the backpropagation algorithm, which is a method for training multilayer neural networks.
-The neural network chosen here is simple. It has a layer of input units at the bottom; any number of intermediate layers; and a layer of output units at the top.
+The neural network described here is simple. It has a layer of input units at the bottom, any number of intermediate layers, and a layer of output units at the top.
 Connections within a layer or from higher to lower layers are forbidden, but connections can skip intermediate layers.
 An input vector is basically the states of the input units.
-Other units in each layer is determined recursively, following equations \ref{equation: matrix multiplication} and \ref{equation: sigmoid}.
+Other units in each layer are determined recursively, following equations \ref{equation: matrix multiplication} and \ref{equation: sigmoid}.
 Note that $x_j$ is the total input, whereas $y_j$ is the total output.
-Weight $w_ji$ is the weight from $y_i$ to $x_j$.
+Weight $w_{ji}$ is the weight from $y_i$ to $x_j$.
 
 \begin{equation}
-    x_j = \sum_{i}^{} {y_i w_ji} 
+    x_j = \sum_{i}^{} {y_i w_{ji}}
     \label{equation: matrix multiplication}
 \end{equation}
 
 \begin{equation}
-    y_j = \frac{1}{1+e^{-x_j}} 
+    y_j = \frac{1}{1+e^{-x_j}}
     \label{equation: sigmoid}
 \end{equation}
 
 As mentioned in the paper, any input-output function which has a bounded derivative instead of equations \ref{equation: matrix multiplication} and \ref{equation: sigmoid} works just as fine.
-It is well-known that combination fo those two can approximate any continuous function.
+It is well-known that the combination of those two can approximate any continuous function.
 However, the use of a linear function combining the inputs to a unit before applying the nonlinearity is needed for faster (in modern days, GPU) and better approximation.
 
-Now that we have defined the neural network, we must set our goal. Basically the goal is to minimize the error of prediction.
+Now that we have defined the neural network, we must set our goal. Basically, the goal is to minimize the error of prediction.
 The error function is defined as follows.
-$c$ is an index over input-output pairs, $j$ is an index over output units, $y$ is the actual state of an output unit and $d$ is its desired state
+$c$ is an index over input-output pairs, $j$ is an index over output units, $y$ is the actual state of an output unit and $d$ is its desired state.
 
 \begin{equation}
-    E = \frac{1}{2} \sum_{c}^{} \sum_{j}^{} (y_{j,c} d_{j,c})^{2}
+    E = \frac{1}{2} \sum_{c}^{} \sum_{j}^{} (y_{j,c} - d_{j,c})^{2}
     \label{equation: error}
 \end{equation}
 
 To minimize $E$ by gradient descent, one must compute the partial derivative of $E$ with respect to each weight in the network.
-This is simply the sum of the partial derivatives for each of the input-output cases. (Because sum of derivatives is derivative of sum)
+This is simply the sum of the partial derivatives for each of the input-output cases (because the sum of derivatives is the derivative of the sum).
 For a given case, the partial derivatives of the error with respect to each weight are computed in two passes.
 The forward pass in which the units in each layer have their states determined by the input they receive from units in lower layers is shown using equations \ref{equation: matrix multiplication} and \ref{equation: sigmoid}.
-The backward pass which propagates derivatives from the top layer back to the bottom one is more complicated, and this backpropagation mechanism is the main work of the paper.
+The backward pass, which propagates derivatives from the top layer back to the bottom one, is more complicated, and this backpropagation mechanism is the main work of the paper.
 
-Equations are actuallt quite simple. Differetiate \ref{equation: error} while fixing $c$ gives
+The equations are actually quite simple. Differentiating \ref{equation: error} while fixing $c$ gives:
 
 \begin{equation}
     \frac{\partial E}{\partial y_j} = y_j - d_j
     \label{equation: de/dy}
 \end{equation}
 
-Applying chain rule gives 
+Applying the chain rule gives:
 
 \begin{equation}
-    \frac{\partial E}{\partial x_j} = \frac{\partial E}{\partial y_j} \frac{\mathrm{d}y_j}{\mathrm{d}x_j} 
+    \frac{\partial E}{\partial x_j} = \frac{\partial E}{\partial y_j} \frac{\mathrm{d}y_j}{\mathrm{d}x_j}
     \label{equation: chain rule}
 \end{equation}
 
-Using equation \ref{equation: sigmoid} gives
+Using equation \ref{equation: sigmoid} gives:
 
 \begin{equation}
-    \frac{\partial E}{\partial x_j} = \frac{\partial E}{\partial y_j} y_j(1-y_j) 
+    \frac{\partial E}{\partial x_j} = \frac{\partial E}{\partial y_j} y_j(1-y_j)
     \label{equation: chain sigmoid}
 \end{equation}
 
-Now applying chain rule again can give partial derivative of sum by weight
+Now applying the chain rule again can give the partial derivative of the sum by weight:
 
 \begin{equation}
-    \frac{\partial E}{\partial w_ji} = \frac{\partial E}{\partial x_j} \frac{\partial x_j}y_i
+    \frac{\partial E}{\partial w_{ji}} = \frac{\partial E}{\partial x_j} \frac{\partial x_j}{\partial y_i}
     \label{equation: weight error}
 \end{equation}
 
-Taking into account all the connections emanating from unit $i$, we have 
+Taking into account all the connections emanating from unit $i$, we have:
 
 \begin{equation}
-    \frac{\partial E}{\partial y_i} = \sum_{j}^{} {frac{\partial E}{\partial x_j} y_ji}
-    \label{equation: weight error}
+    \frac{\partial E}{\partial y_i} = \sum_{j}^{} {\frac{\partial E}{\partial x_j} w_{ji}}
+    \label{equation: back prop}
 \end{equation}
 
 Note that index $i$ is for the lower layer, whereas $j$ is for the upper layer.
-This means that backward computation of gradient is possible.
+This means that the backward computation of the gradient is possible.
+
+\end{document}
